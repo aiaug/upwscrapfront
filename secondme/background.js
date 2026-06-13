@@ -67,18 +67,27 @@ async function sendLog(payload) {
 async function scrape(tabId) {
   const [{ result }] = await chrome.scripting.executeScript({
     target: { tabId },
-    func: () => {
-      const items = [...document.querySelectorAll(".ca-item")];
+    func: async () => {
+      let items = [...document.querySelectorAll(".ca-item")];
       if (!items.length) {
-        return {
-          proposals: "",
-          lastViewed: "",
-          interviewing: "",
-          hires: "",
-          invites: "",
-          unanswered: ""
-        };
-      }
+        for (let i = 0; i < 30; i++) {
+          await new Promise(r => setTimeout(r, 1000));
+          items = [...document.querySelectorAll(".ca-item")];
+          if (items.length) {
+            break;
+          }
+        }
+        if (!items.length) {
+          return {
+              proposals: "",
+              lastViewed: "",
+              interviewing: "",
+              hires: "",
+              invites: "",
+              unanswered: ""
+          };
+        }
+    }
       const findValue = (label) => {
         const el = items.find(e => e.innerText.includes(label));
         return el?.querySelector(".value")?.innerText || "";
