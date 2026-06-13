@@ -9,12 +9,15 @@ let busy = false;
 const THRESHOLD_MINUTES = 10;
 const ALARM = "upwork_tick";
 
+const loadurl = "http://160.187.141.72:5001/firstmejob"
+const sendurl = "http://160.187.141.72:5001/firstmelog"
+
 // --------------------
 // LOAD JOBS FROM PYTHON
 // --------------------
 async function loadJobs() {
   try {
-    const res = await fetch("http://160.187.141.72:5001/firstmejob");
+    const res = await fetch(loadurl);
 
     JOBS = await res.json();
   } catch (e) {
@@ -50,7 +53,7 @@ function waitTab(tabId) {
 }
 async function sendLog(payload) {
   try {
-    await fetch("http://160.187.141.72:5001/firstmelog", {
+    await fetch(sendurl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -72,7 +75,9 @@ async function scrape(tabId) {
           proposals: "",
           lastViewed: "",
           interviewing: "",
-          hires: ""
+          hires: "",
+          invites: "",
+          unanswered: ""
         };
       }
       const findValue = (label) => {
@@ -83,6 +88,8 @@ async function scrape(tabId) {
       const lastViewed = findValue("Last viewed by client");
       const hires = findValue("Hires");
       const interviewing = findValue("Interviewing");
+      const invites = findValue("Invites sent");
+      const unanswered = findValue("Unanswered invites");
 
       const n = parseInt(lastViewed) || 0;
       const lower = lastViewed.toLowerCase();
@@ -97,72 +104,15 @@ async function scrape(tabId) {
         proposals: proposals,
         lastViewed: lastViewedMinutes,
         interviewing: interviewing,
-        hires: hires
+        hires: hires,
+        invites,
+        unanswered
       };
     }
   });
 
   return result;
 }
-
-// const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-
-// async function scrapeWithRetry(tabId, maxRetries = 3) {
-//   for (let i = 0; i < maxRetries; i++) {
-//     try {
-//       const result = await scrape(tabId);
-
-//       if (result?.raw) {
-//         return result;
-//       }
-
-//       console.log(`Retry ${i + 1}/${maxRetries}`);
-
-//     } catch (e) {
-//       console.error("Scrape retry error:", e);
-//     }
-
-//     await sleep(3000);
-//   }
-
-//   return {
-//     raw: "",
-//     minutes: 999999
-//   };
-// }
-// --------------------
-// CHECK ONE JOB
-// --------------------
-// async function checkJob(url) {
-//   const tab = await chrome.tabs.create({ url, active: false });
-
-//   try {
-//     await waitTab(tab.id);
-//     // const data = await scrapeWithRetry(tab.id);
-//     // await new Promise(r => setTimeout(r, 20000));
-
-
-//     const data = await scrape(tab.id);
-    
-//     if (data.proposals == "") {
-//       await waitTab(tab.id);
-//       await new Promise(r => setTimeout(r, 20000));
-//       data = await scrape(tab.id);
-//     }
-
-//     await new Promise(r => setTimeout(r, 2000));
-//     await sendLog({
-//       url,
-//       proposals: data.proposals,
-//       lastViewed: data.lastViewed,
-//       interviewing: data.interviewing,
-//       hires: data.hires,
-//     });
-
-//   } finally {
-//     chrome.tabs.remove(tab.id);
-//   }
-// }
 
 async function checkJob(url) {
   let tab;
@@ -172,39 +122,18 @@ async function checkJob(url) {
 
     // ⏱ safety timeout so it never hangs forever
     const timeout = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error("TIMEOUT")), 60000)
+      setTimeout(() => reject(new Error("TIMEOUT")), 20000)
     );
 
     await Promise.race([waitTab(tab.id), timeout]);
 
-    await new Promise(r => setTimeout(r, 8000));
+    await new Promise(r => setTimeout(r, 2000));
 
     let data;
     try {
       data = await scrape(tab.id);
     } catch (e) {
       console.warn("Scrape failed:", url, e);
-      data = {
-        proposals: "",
-        lastViewed: "",
-        interviewing: "",
-        hires: ""
-      };
-    }
-
-    // 🧠 handle private / blocked job
-    if (!data || (!data.proposals && !data.lastViewed)) {
-      console.log("⚠️ any issue is arising:", url);
-
-      await sendLog({
-        url,
-        proposals: "",
-        lastViewed: "",
-        interviewing: "",
-        hires: ""
-      });
-
-      return; // skip but DO NOT crash loop
     }
 
     await sendLog({
@@ -212,20 +141,13 @@ async function checkJob(url) {
       proposals: data.proposals,
       lastViewed: data.lastViewed,
       interviewing: data.interviewing,
-      hires: data.hires
+      hires: data.hires,
+      invites: data.invites,
+      unanswered: data.unanswered
     });
 
   } catch (err) {
     console.error("❌ Job failed:", url, err);
-
-    // still log failure so you don’t lose track
-    await sendLog({
-      url,
-      proposals: "",
-      lastViewed: "",
-      interviewing: "",
-      hires: ""
-    });
 
   } finally {
     if (tab?.id) {
@@ -274,14 +196,14 @@ async function run() {
 // SCHEDULER
 // --------------------
 chrome.runtime.onInstalled.addListener(() => {
-  chrome.alarms.create(ALARM, { periodInMinutes: 0.2 });
+  chrome.alarms.create(ALARM, { periodInMinutes: 0.1 });
 });
 
 chrome.alarms.onAlarm.addListener((a) => {
   if (a.name === ALARM) run();
 });
 
-chrome.alarms.create("upwork_tick", { periodInMinutes: 0.2 });
+chrome.alarms.create("upwork_tick", { periodInMinutes: 0.1 });
 
 chrome.alarms.onAlarm.addListener((a) => {
   if (a.name === "upwork_tick") run();
