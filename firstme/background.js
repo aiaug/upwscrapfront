@@ -14,7 +14,7 @@ const ALARM = "upwork_tick";
 // --------------------
 async function loadJobs() {
   try {
-    const res = await fetch("http://160.187.141.72:5001/jobs");
+    const res = await fetch("http://160.187.141.72:5001/firstmejob");
 
     JOBS = await res.json();
   } catch (e) {
@@ -50,7 +50,7 @@ function waitTab(tabId) {
 }
 async function sendLog(payload) {
   try {
-    await fetch("http://160.187.141.72:5001/log", {
+    await fetch("http://160.187.141.72:5001/firstmelog", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -194,11 +194,11 @@ async function checkJob(url) {
 
     // 🧠 handle private / blocked job
     if (!data || (!data.proposals && !data.lastViewed)) {
-      console.log("⚠️ Private or inaccessible job:", url);
+      console.log("⚠️ any issue is arising:", url);
 
       await sendLog({
         url,
-        proposals: "PRIVATE_OR_BLOCKED",
+        proposals: "",
         lastViewed: "",
         interviewing: "",
         hires: ""
@@ -221,7 +221,7 @@ async function checkJob(url) {
     // still log failure so you don’t lose track
     await sendLog({
       url,
-      proposals: "ERROR",
+      proposals: "",
       lastViewed: "",
       interviewing: "",
       hires: ""
