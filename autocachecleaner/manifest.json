@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "Auto Cache Cleaner Pro",
+  "version": "1.0",
+  "description": "Automatically clears browser data on a schedule.",
+  "permissions": ["browsingData", "alarms", "storage"],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  }
+}

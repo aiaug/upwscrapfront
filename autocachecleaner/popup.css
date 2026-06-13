@@ -1,0 +1,4 @@
+body { font-family: Arial, sans-serif; width: 250px; padding: 10px; }
+h2 { text-align: center; }
+button { margin: 5px 0; width: 100%; }
+#lastClean { margin-top: 10px; font-size: 12px; color: gray; }

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Auto Cache Cleaner Pro</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <h2>Auto Cache Cleaner</h2>
+
+  <div>
+    <label><input type="checkbox" id="cache" checked> Cache</label><br>
+    <label><input type="checkbox" id="cookies"> Cookies</label><br>
+    <label><input type="checkbox" id="history"> History</label><br>
+    <label><input type="checkbox" id="downloads"> Downloads</label>
+  </div>
+
+  <div>
+    <label>Interval:
+      <select id="interval">
+        <option value="5" selected>5 mins</option>
+        <option value="15">15 mins</option>
+        <option value="30">30 mins</option>
+        <option value="60">1 hour</option>
+        <option value="120">2 hours</option>
+      </select>
+    </label>
+  </div>
+
+  <button id="start">Start Auto Clean</button>
+  <button id="stop">Stop Auto Clean</button>
+
+  <div id="lastClean"></div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
