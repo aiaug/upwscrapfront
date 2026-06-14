@@ -11,8 +11,6 @@ const ALARM = "upwork_tick";
 
 const loadurl = "http://160.187.141.72:5001/firstmejob"
 const sendurl = "http://160.187.141.72:5001/firstmelog"
-const alerturl = "http://160.187.141.72:5001/firstalert"
-
 // --------------------
 // LOAD JOBS FROM PYTHON
 // --------------------
@@ -71,15 +69,7 @@ async function scrape(tabId, url) {
     target: { tabId },
     func: async () => {
       let items = [...document.querySelectorAll(".ca-item")];
-      if (!items.length) {
-        try {
-          await fetch(alerturl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ url })
-          });
-        } catch (e) {}
-        
+      if (!items.length) {      
         for (let i = 0; i < 30; i++) {
           await new Promise(r => setTimeout(r, 1000));
           items = [...document.querySelectorAll(".ca-item")];
